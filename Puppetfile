@@ -1,0 +1,6 @@
+mod 'pizzaops-cutover', '1.0.5'
+mod 'puppetlabs-puppet_agent', '1.4.0'
+mod 'puppetlabs-stdlib', '4.17.1'
+mod 'puppetlabs-transition', '0.1.1'
+mod 'puppetlabs-inifile', '1.6.0'
+mod 'WhatsARanjit-node_manager', '0.4.2'
