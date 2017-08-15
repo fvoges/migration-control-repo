@@ -4,13 +4,88 @@
 
 This is a pseudo-control repository for Puppet Enterprise.
 
-It's design to assit with the migration from PE 3.8 to 2016.4 (but should work with other PE releases based on Puppet 4.x)
+It's design to assist with the migration from PE 3.8 to 2016.4 (but should work with other PE releases based on Puppet 4.x)
+
+## Pseudo control-repo?
+
+I called it pseudo-control repo for lack of a better name. It's not a full control repo. It has all the pieces of a control repo (`Puppetfile`, `environment.conf`, `site` directory with a profiles module, etc.) but it's not meant to be used as one.
+
+How do you use it then?
+
+You can either add it as a new branch of your existing control repository. If you're not using a control repository, then you can install the modules from the `Puppetfile` and then copy the contents of this repo into a new Puppet environment in your Puppet Master(s).
+
+## Installation
+
+
+You have two ways to install it
+
+### Using Code Manager (or r10k)
+
+  1. Using r10k/coda manager:
+    1. You create a new, empty, branch
+    1. Add the contents of this repo to it
+  2. Not using r10k/code manager
+    1. Install all modules from the Puppetfile (`r10k puppetfile install -v`)
+    2. Copy the
+
+```shell
+git clone https://github.com/fvoges/migration-control-repo /tmp/migration
+# We don't need the full Git repository, just the files
+rm -rf /tmp/migration/.git
+
+# Change to the working directory of your control repository
+cd LOCATION_OF_YOUR_CONTROL_REPO_WORKDIR
+# Create a new empty branch
+git checkout --orphan migration
+# Remove the unnecessary files
+git rm --cached -r .
+# Copy over the migration environment
+cp -r /tmp/migration/* .
+git add .
+git commit -m 'Migration environment'
+```
+
+
+### Manual installation without Code Manager (or r10k)
+
+```shell
+git clone https://github.com/fvoges/migration-control-repo /tmp/migration
+cd /tmp/migration
+# We don't need the full Git repository, just the files
+rm -rf /tmp/migration/.git
+#
+# if r10k command is available (e.g., on a Puppet Master)
+#
+r10k puppetfile install
+#
+# Manual install without r10k
+#
+mkdir -p /tmp/modules
+puppet module install --target-dir /tmp/modules \
+    --ignore-dependencies pizzaops-cutover --version 1.0.5
+puppet module install --target-dir /tmp/modules \
+    --ignore-dependencies puppetlabs-puppet_agent --version 1.4.0
+puppet module install --target-dir /tmp/modules \
+    --ignore-dependencies puppetlabs-stdlib --version 4.17.1
+puppet module install --target-dir /tmp/modules \
+    --ignore-dependencies puppetlabs-transition --version 0.1.1
+puppet module install --target-dir /tmp/modules \
+    --ignore-dependencies puppetlabs-inifile --version 1.6.0
+puppet module install --target-dir /tmp/modules \
+    --ignore-dependencies WhatsARanjit-node_manager --version 0.4.2
+
+#
+tar -C /tmp -cvzf ~/migration-env.tar.gz migration
+
+```
+
 
 
 
 ## How does it work?
 
 It uses a set of classes and classification groups to automate the PuppetAgent. It's designed to be self contained and easy to install.
+
 
 
 
