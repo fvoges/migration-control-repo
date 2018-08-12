@@ -30,6 +30,23 @@ class migration::cutover (
     require => Class['::cutover'],
   }
 
+  ini_setting { 'puppet.conf:main:stringify_facts=false':
+    ensure  => present,
+    path    => $::settings::config,
+    section => 'main',
+    setting => 'stringify_facts',
+    value   => 'false',
+    before  => Class['::cutover'],
+  }
+
+  ini_setting { 'puppet.conf:agent:stringify_facts absent':
+    ensure  => absent,
+    path    => $::settings::config,
+    section => 'agent',
+    setting => 'stringify_facts',
+    before  => Class['::cutover'],
+  }
+
   class { '::cutover':
     manage_server     => true,
     server            => $server,
