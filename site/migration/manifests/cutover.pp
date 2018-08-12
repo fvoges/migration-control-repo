@@ -7,6 +7,17 @@ class migration::cutover (
 ) {
   validate_string($server)
 
+  $cleanup_settings = {
+    'main'  => 'vardir',
+    'main'  => 'logdir',
+    'main'  => 'rundir',
+    'main'  => 'ssldir',
+    'agent' => 'pluginsync',
+    'agent' => 'report',
+    'agent' => 'ignoreschedules',
+    'agent' => 'daemon',
+  }
+
   if ($ca_server) {
     validate_string($ca_server)
     $manage_ca_server = true
@@ -30,6 +41,16 @@ class migration::cutover (
     require => Class['::cutover'],
   }
 
+
+  for $cleanup_settings.each |$section,$setting| {
+    ini_setting { "puppet.conf:${section}:${setting} absent":
+      ensure  => absent,
+      path    => $::settings::config,
+      section => $section,
+      setting => $setting,
+      before  => Class['::cutover'],
+    }
+  }
   ini_setting { 'puppet.conf:main:stringify_facts=false':
     ensure  => present,
     path    => $::settings::config,
@@ -45,6 +66,26 @@ class migration::cutover (
     section => 'agent',
     setting => 'stringify_facts',
     before  => Class['::cutover'],
+  }
+
+  if $ca_server_section == 'main' {
+    ini_setting { 'puppet.conf:agent:ca_server absent':
+      ensure  => absent,
+      path    => $::settings::config,
+      section => 'agent',
+      setting => 'ca_server',
+      before  => Class['::cutover'],
+    }
+  }
+
+  if $manage_ca_server and $server_section == 'main' {
+    ini_setting { 'puppet.conf:agent:server absent':
+      ensure  => absent,
+      path    => $::settings::config,
+      section => 'agent',
+      setting => 'server',
+      before  => Class['::cutover'],
+    }
   }
 
   class { '::cutover':
